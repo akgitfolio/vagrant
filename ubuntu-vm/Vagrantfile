@@ -1,0 +1,16 @@
+# Vagrantfile
+Vagrant.configure("2") do |config|
+    # Specify the box to use
+    config.vm.box = "ubuntu/focal64"
+    
+    # Forward port 80 of the VM to port 8080 on the host machine
+    config.vm.network "forwarded_port", guest: 80, host: 8080
+    
+    # Provide a shell script to provision the VM
+    config.vm.provision "shell", inline: <<-SHELL
+      # Update package list and install apache2
+      sudo apt-get update
+      sudo apt-get install -y apache2
+    SHELL
+  end
+  
