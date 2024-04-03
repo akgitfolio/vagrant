@@ -1,0 +1,35 @@
+Vagrant.configure("2") do |config|
+  # Define master node
+  config.vm.define "master" do |master|
+    master.vm.box = "ubuntu/focal64"
+    master.vm.network "private_network", ip: "192.168.33.10"
+    master.vm.hostname = "master"
+    master.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.cpus = 2
+    end
+    master.vm.provision "shell", inline: <<-SHELL
+      sudo apt-get update
+      sudo apt-get install -y curl
+      curl -sfL https://get.k3s.io | sh -
+    SHELL
+  end
+
+  # Define worker nodes
+  (1..2).each do |i|
+    config.vm.define "worker#{i}" do |worker|
+      worker.vm.box = "ubuntu/focal64"
+      worker.vm.network "private_network", ip: "192.168.33.1#{i + 1}"
+      worker.vm.hostname = "worker#{i}"
+      worker.vm.provider "virtualbox" do |vb|
+        vb.memory = "2048"
+        vb.cpus = 2
+      end
+      worker.vm.provision "shell", inline: <<-SHELL
+        sudo apt-get update
+        sudo apt-get install -y curl
+        curl -sfL https://get.k3s.io | K3S_URL=https://192.168.33.10:6443 K3S_TOKEN=token sh -
+      SHELL
+    end
+  end
+end
